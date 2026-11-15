@@ -161,6 +161,12 @@ p { margin: 0; }
 .name-row input::placeholder, .team-name::placeholder { color: #9AA0C4; }
 .x { width: 44px; height: 44px; border-radius: 12px; border: 0; background: var(--paper-2); color: var(--muted); font-size: 24px; font-weight: 900; flex: none; }
 .x:disabled { opacity: .35; }
+.player-item { display: grid; gap: 6px; }
+.player-item + .player-item { padding-top: 4px; }
+.seg.lvl { padding: 3px; border-radius: 12px; margin-left: 22px; margin-right: 52px; }
+.seg.lvl button { min-height: 34px; padding: 6px 4px; font-size: 13px; border-radius: 9px; }
+.team-block .seg.lvl { margin-left: 0; }
+.level-pill { justify-self: center; display: inline-block; font-weight: 900; font-size: 15px; padding: 6px 14px; border-radius: 99px; background: var(--paper); color: var(--ink); }
 .add { border: 2px dashed var(--line); background: transparent; border-radius: 12px; padding: 10px; font-weight: 900; color: var(--bg); }
 .team-block { display: grid; gap: 8px; padding: 12px; border-radius: 16px; border: 3px solid var(--tc); }
 .team-head { display: flex; gap: 8px; align-items: center; }
@@ -323,6 +329,7 @@ p { margin: 0; }
         <button data-opt="time" data-val="45">45s</button>
         <button data-opt="time" data-val="60">60s</button>
         <button data-opt="time" data-val="90">90s</button>
+        <button data-opt="time" data-val="120">120s</button>
       </div>
     </div>
     <div class="opt">
@@ -336,10 +343,16 @@ p { margin: 0; }
     </div>
     <div class="opt">
       <span class="opt-label">Danger words on each card</span>
-      <div class="seg" role="group" aria-label="Danger words">
-        <button data-opt="words" data-val="3">3<small>easier</small></button>
-        <button data-opt="words" data-val="5">5<small>harder</small></button>
+      <div class="seg" role="group" aria-label="Danger words: same for everyone or per player">
+        <button data-opt="diffEach" data-val="false">Same for everyone</button>
+        <button data-opt="diffEach" data-val="true">Set for each player</button>
       </div>
+      <div class="seg" role="group" aria-label="Danger words for everyone" id="words-all">
+        <button data-opt="words" data-val="3">Easy<small>3 words</small></button>
+        <button data-opt="words" data-val="4">Medium<small>4 words</small></button>
+        <button data-opt="words" data-val="5">Hard<small>5 words</small></button>
+      </div>
+      <p class="hint" id="words-each-hint" hidden>Pick Easy, Medium or Hard under each player's name above.</p>
     </div>
     <div class="opt">
       <span class="opt-label">Skips per turn</span>
@@ -375,6 +388,7 @@ p { margin: 0; }
     <p class="pass-to">Pass the phone to</p>
     <h1 class="who" id="pass-name"></h1>
     <div id="pass-team"></div>
+    <span class="level-pill" id="pass-level"></span>
     <div class="hint-box" id="pass-hint"></div>
   </div>
   <div class="board" id="pass-board"></div>
@@ -870,8 +884,8 @@ const NO_SIGN = '<svg class="no-sign" viewBox="0 0 16 16" aria-hidden="true"><ci
 const DEFAULT_SETUP = {
   mode: 'solo',
   players: ['', '', ''],
-  teams: [{ name: '', players: ['', ''] }, { name: '', players: ['', ''] }],
-  time: 60, rounds: 3, words: 5, skips: -1, penalty: true, sound: true,
+  teams: [{ name: '', players: ['', ''], levels: [5, 5] }, { name: '', players: ['', ''], levels: [5, 5] }],
+  time: 60, rounds: 3, words: 5, diffEach: false, levels: [5, 5, 5], skips: -1, penalty: true, sound: true,
 };
 let setup = Object.assign(JSON.parse(JSON.stringify(DEFAULT_SETUP)), store.get('dsi.setup', {}));
 let game = store.get('dsi.game', null);
@@ -953,6 +967,11 @@ function turnInfo(t) {
   const p = Math.floor(t / 2) % tm.players.length;
   return { team, describer: p, name: tm.players[p], round: Math.floor(t / 2) + 1 };
 }
+function wordsFor(info) {
+  if (!game.settings.each) return game.settings.words;
+  const lv = game.mode === 'solo' ? (game.levels || [])[info.describer] : (game.teams[info.team].levels || [])[info.describer];
+  return lv || game.settings.words;
+}
 function guessersFor(info) {
   if (game.mode !== 'solo') return [];
   return game.players.map((n, i) => ({ n, i })).filter(x => x.i !== info.describer);
@@ -970,16 +989,17 @@ function newGame() {
   const s = setup;
   const g = {
     mode: s.mode,
-    settings: { time: s.time, words: s.words, skips: s.skips, penalty: s.penalty },
+    settings: { time: s.time, words: s.words, each: !!s.diffEach, skips: s.skips, penalty: s.penalty },
     rounds: s.rounds, turn: 0, phase: 'pass', log: [], deckPos: 0, deck: buildDeck(), cur: null,
   };
   if (s.mode === 'solo') {
     g.players = s.players.map((p, i) => p.trim() || `Player ${i + 1}`);
+    g.levels = s.levels.slice();
     g.scores = g.players.map(() => 0);
     g.totalTurns = g.rounds * g.players.length;
   } else {
     let k = 0;
-    g.teams = s.teams.map((t, ti) => ({ name: t.name.trim() || TEAM_DEFAULTS[ti], players: t.players.map(p => p.trim() || `Player ${++k}`) }));
+    g.teams = s.teams.map((t, ti) => ({ name: t.name.trim() || TEAM_DEFAULTS[ti], players: t.players.map(p => p.trim() || `Player ${++k}`), levels: t.levels.slice() }));
     g.scores = [0, 0];
     g.totalTurns = g.rounds * 2;
   }
@@ -998,10 +1018,17 @@ function renderHome() {
 }
 
 /* ---------- SETUP ---------- */
-function nameRow(id, value, placeholder, color, rmAction, attrs, canRemove) {
-  return `<div class="name-row">${color ? `<span class="dot" style="--c:${color}"></span>` : ''}
+const LEVELS = [{ v: 3, n: 'Easy' }, { v: 4, n: 'Medium' }, { v: 5, n: 'Hard' }];
+const levelName = v => (LEVELS.find(l => l.v === v) || LEVELS[2]).n;
+function levelPicker(key, cur, who) {
+  if (!setup.diffEach) return '';
+  return `<div class="seg lvl" role="group" aria-label="Danger words for ${esc(who)}">${LEVELS.map(l =>
+    `<button data-lvl="${key}" data-val="${l.v}" aria-pressed="${cur === l.v}">${l.n}</button>`).join('')}</div>`;
+}
+function nameRow(id, value, placeholder, color, rmAction, attrs, canRemove, lvlKey, lvl) {
+  return `<div class="player-item"><div class="name-row">${color ? `<span class="dot" style="--c:${color}"></span>` : ''}
     <input id="${id}" ${attrs} value="${esc(value)}" placeholder="${esc(placeholder)}" maxlength="14" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done">
-    <button class="x" ${rmAction} aria-label="Remove ${esc(value || placeholder)}" ${canRemove ? '' : 'disabled'}>×</button></div>`;
+    <button class="x" ${rmAction} aria-label="Remove ${esc(value || placeholder)}" ${canRemove ? '' : 'disabled'}>×</button></div>${levelPicker(lvlKey, lvl, value || placeholder)}</div>`;
 }
 function renderSetup() {
   const solo = setup.mode === 'solo';
@@ -1013,18 +1040,20 @@ function renderSetup() {
   let html = '';
   if (solo) {
     html = '<div class="names">' + setup.players.map((p, i) =>
-      nameRow(`p${i}`, p, `Player ${i + 1}`, PLAYER_COLORS[i % PLAYER_COLORS.length], `data-action="rm-player" data-i="${i}"`, `data-p="${i}"`, setup.players.length > 2)
+      nameRow(`p${i}`, p, `Player ${i + 1}`, PLAYER_COLORS[i % PLAYER_COLORS.length], `data-action="rm-player" data-i="${i}"`, `data-p="${i}"`, setup.players.length > 2, `p:${i}`, setup.levels[i])
     ).join('') + '</div>';
     if (setup.players.length < 10) html += '<button class="add" data-action="add-player" style="margin-top:8px;width:100%">+ Add a player</button>';
   } else {
     let k = 0;
     html = setup.teams.map((t, ti) => `<div class="team-block" style="--tc:${TEAM_COLORS[ti]};margin-top:${ti ? 12 : 0}px">
       <div class="team-head"><span class="team-badge">Team ${ti + 1}</span><input class="team-name" id="t${ti}" data-t="${ti}" value="${esc(t.name)}" placeholder="${TEAM_DEFAULTS[ti]}" maxlength="16" autocomplete="off" spellcheck="false" aria-label="Team ${ti + 1} name"></div>
-      <div class="names">${t.players.map((p, i) => nameRow(`t${ti}p${i}`, p, `Player ${++k}`, null, `data-action="rm-tplayer" data-t="${ti}" data-i="${i}"`, `data-tp="${ti}:${i}"`, t.players.length > 2)).join('')}</div>
+      <div class="names">${t.players.map((p, i) => nameRow(`t${ti}p${i}`, p, `Player ${++k}`, null, `data-action="rm-tplayer" data-t="${ti}" data-i="${i}"`, `data-tp="${ti}:${i}"`, t.players.length > 2, `t:${ti}:${i}`, t.levels[i])).join('')}</div>
       ${t.players.length < 6 ? `<button class="add" data-action="add-tplayer" data-t="${ti}">+ Add to ${esc(t.name.trim() || TEAM_DEFAULTS[ti])}</button>` : ''}
     </div>`).join('');
   }
   $('#who').innerHTML = html;
+  $('#words-all').hidden = !!setup.diffEach;
+  $('#words-each-hint').hidden = !setup.diffEach;
   $('#rounds-out').textContent = setup.rounds;
   $('[data-action="rounds-dn"]').disabled = setup.rounds <= 1;
   $('[data-action="rounds-up"]').disabled = setup.rounds >= 8;
@@ -1055,6 +1084,8 @@ function renderPass() {
   const lastTurn = game.turn === game.totalTurns - 1;
   $('#pass-round').textContent = lastTurn ? 'Last turn!' : `Round ${info.round} of ${game.rounds}${lastRound ? ' (last round)' : ''}`;
   $('#pass-name').textContent = info.name;
+  const wc = wordsFor(info);
+  $('#pass-level').textContent = `${levelName(wc)}: ${wc} danger words`;
   const skipTxt = game.settings.skips < 0 ? '' : game.settings.skips === 0 ? ' No skips this game!' : ` You get ${game.settings.skips} skips.`;
   if (game.mode === 'solo') {
     $('#pass-team').innerHTML = '';
@@ -1100,7 +1131,7 @@ function countdown(done) {
 }
 function cardHtml(idx) {
   const c = CARDS[idx];
-  const words = c.f.slice(0, game.settings.words);
+  const words = c.f.slice(0, wordsFor(turnInfo(game.turn)));
   return `<div class="card enter"><div class="card-top"><span class="card-label">Get them to say</span><h2 class="target">${esc(c.w)}</h2></div>
     <div class="card-bottom"><span class="card-label">${NO_SIGN} Don't say</span><ul class="danger">${words.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div></div>`;
 }
@@ -1322,7 +1353,12 @@ document.addEventListener('click', e => {
   const a = b.dataset.action;
   if (b.dataset.opt) {
     const k = b.dataset.opt, v = b.dataset.val;
-    setup[k] = k === 'mode' ? v : Number(v);
+    setup[k] = k === 'mode' ? v : k === 'diffEach' ? v === 'true' : Number(v);
+    saveSetup(); renderSetup(); return;
+  }
+  if (b.dataset.lvl) {
+    const parts = b.dataset.lvl.split(':'), v = Number(b.dataset.val);
+    if (parts[0] === 'p') setup.levels[+parts[1]] = v; else setup.teams[+parts[1]].levels[+parts[2]] = v;
     saveSetup(); renderSetup(); return;
   }
   if (b.dataset.toggle) { setup[b.dataset.toggle] = !setup[b.dataset.toggle]; saveSetup(); renderSetup(); return; }
@@ -1332,10 +1368,10 @@ document.addEventListener('click', e => {
     case 'rules': overlay('rules', true); break;
     case 'close-rules': overlay('rules', false); break;
     case 'resume': resumeGame(); break;
-    case 'add-player': setup.players.push(''); saveSetup(); renderSetup(); { const el = $(`#p${setup.players.length - 1}`); el && el.focus(); } break;
-    case 'rm-player': setup.players.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
-    case 'add-tplayer': { const t = +b.dataset.t; setup.teams[t].players.push(''); saveSetup(); renderSetup(); const el = $(`#t${t}p${setup.teams[t].players.length - 1}`); el && el.focus(); break; }
-    case 'rm-tplayer': setup.teams[+b.dataset.t].players.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
+    case 'add-player': setup.players.push(''); setup.levels.push(setup.words); saveSetup(); renderSetup(); { const el = $(`#p${setup.players.length - 1}`); el && el.focus(); } break;
+    case 'rm-player': setup.players.splice(+b.dataset.i, 1); setup.levels.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
+    case 'add-tplayer': { const t = +b.dataset.t; setup.teams[t].players.push(''); setup.teams[t].levels.push(setup.words); saveSetup(); renderSetup(); const el = $(`#t${t}p${setup.teams[t].players.length - 1}`); el && el.focus(); break; }
+    case 'rm-tplayer': setup.teams[+b.dataset.t].players.splice(+b.dataset.i, 1); setup.teams[+b.dataset.t].levels.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
     case 'rounds-dn': setup.rounds = Math.max(1, setup.rounds - 1); saveSetup(); renderSetup(); break;
     case 'rounds-up': setup.rounds = Math.min(8, setup.rounds + 1); saveSetup(); renderSetup(); break;
     case 'start': {
@@ -1384,6 +1420,9 @@ function resumeGame() {
 /* ---------- boot ---------- */
 if (!Array.isArray(setup.players) || setup.players.length < 2) setup.players = DEFAULT_SETUP.players.slice();
 if (!Array.isArray(setup.teams) || setup.teams.length !== 2) setup.teams = JSON.parse(JSON.stringify(DEFAULT_SETUP.teams));
+const fixLevels = (lv, n) => Array.from({ length: n }, (_, i) => [3, 4, 5].includes(lv && lv[i]) ? lv[i] : setup.words);
+setup.levels = fixLevels(setup.levels, setup.players.length);
+setup.teams.forEach(t => { t.levels = fixLevels(t.levels, t.players.length); });
 renderHome();
 })();
 </script>

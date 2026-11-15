@@ -6,7 +6,8 @@ A pass-the-phone word guessing game for the family. One player describes the wor
 
 - **Every player for themselves** (2–10 players): when someone guesses right, the describer taps that person's name. The describer and the guesser each get a point.
 - **Two teams** (2–6 players per team): the describer's team gets a point for each word. The other team watches over the describer's shoulder and shouts "Buzz!" if a danger word slips out.
-- Settings: 30/45/60/90 second turns, 1–8 rounds, 3 (easier) or 5 (harder) danger words, skip limits, and an optional −1 point for saying a danger word.
+- Settings: 30/45/60/90/120 second turns, 1–8 rounds, skip limits, and an optional −1 point for saying a danger word.
+- Danger words: Easy (3), Medium (4) or Hard (5). Choose **Same for everyone** to use one level for the whole game, or **Set for each player** to give each player their own level.
 - At the end of each turn you can tap any word to fix its result before the scores are saved.
 - A game in progress is saved on the phone, so you can close the browser and pick up where you left off.
 - The deck has 361 cards. Cards you've already played are kept to the back of the deck for later games.
