@@ -1,0 +1,1003 @@
+<title>Don't Say It!</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#2847B8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: one full-height screen at a time, a big white playing card in the middle, chunky buttons in the thumb zone.
+   Deliberately single-theme: a bright game-box look on cobalt, identical in light and dark. */
+:root {
+  --bg: #2847B8;
+  --bg-deep: #1B318A;
+  --sun: #FFC83D;
+  --paper: #FFFFFF;
+  --paper-2: #F2F4FC;
+  --ink: #17173A;
+  --muted: #5B618F;
+  --line: #DFE3F4;
+  --go: #12A157;
+  --go-deep: #0B7A41;
+  --stop: #E3343A;
+  --stop-deep: #A81E23;
+  --skip: #FF8A1F;
+  --skip-deep: #C2620B;
+  --team-a: #FF5D8F;
+  --team-b: #17C3B2;
+  --on-bg: #FFFFFF;
+  --on-bg-soft: rgba(255,255,255,.78);
+  --glass: rgba(255,255,255,.12);
+  --display: 'Lilita One', 'Arial Rounded MT Bold', 'Trebuchet MS', system-ui, sans-serif;
+  --body: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --r: 22px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(255,255,255,.07) 2px, transparent 2.5px);
+  background-size: 24px 24px;
+  color: var(--on-bg);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.4;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input { -webkit-user-select: text; user-select: text; }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
+h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 400; letter-spacing: .01em; text-wrap: balance; }
+p { margin: 0; }
+
+.screen {
+  min-height: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-block: 18px 22px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.grow { flex: 1; }
+.eyebrow { font-weight: 900; text-transform: uppercase; letter-spacing: .12em; font-size: 13px; color: var(--on-bg-soft); }
+
+/* Buttons */
+.btn {
+  --c: var(--sun); --d: #C99417; --t: var(--ink);
+  border: 0; border-radius: 18px;
+  background: var(--c); color: var(--t);
+  box-shadow: 0 5px 0 var(--d);
+  padding: 16px 20px; min-height: 58px;
+  font-family: var(--display); font-size: 22px; letter-spacing: .02em;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: transform .06s, box-shadow .06s;
+  width: 100%;
+}
+.btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--d); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.go { --c: var(--go); --d: var(--go-deep); --t: #fff; }
+.btn.stop { --c: var(--stop); --d: var(--stop-deep); --t: #fff; }
+.btn.skip { --c: var(--skip); --d: var(--skip-deep); --t: #fff; }
+.btn.ghost { --c: var(--glass); --d: rgba(0,0,0,.18); --t: #fff; }
+.btn.white { --c: var(--paper); --d: #B8C0E4; --t: var(--ink); }
+.btn.small { min-height: 46px; padding: 10px 14px; font-size: 18px; border-radius: 14px; }
+.btn .sub { font-family: var(--body); font-weight: 800; font-size: 14px; opacity: .85; }
+.link-btn { background: none; border: 0; color: var(--on-bg-soft); font-weight: 800; padding: 10px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Logo */
+.logo { font-family: var(--display); line-height: .9; text-align: center; color: var(--sun); transform: rotate(-4deg); }
+.logo .l1 { display: block; font-size: clamp(54px, 17vw, 86px); -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; text-shadow: 0 6px 0 var(--ink); }
+.logo .l2 { display: inline-block; margin-top: 8px; font-size: clamp(40px, 12vw, 62px); color: #fff; background: var(--stop); padding: 2px 18px 6px; border-radius: 14px; box-shadow: 0 6px 0 var(--ink); transform: rotate(3deg); }
+
+/* The playing card */
+.card {
+  background: var(--paper); color: var(--ink);
+  border-radius: var(--r);
+  box-shadow: 0 10px 0 rgba(0,0,0,.18);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.card-top { padding: 18px 18px 16px; text-align: center; display: grid; gap: 4px; }
+.card-label { font-weight: 900; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; color: var(--muted); }
+.target { font-size: clamp(36px, 11vw, 56px); line-height: 1.02; color: var(--bg); overflow-wrap: anywhere; }
+.card-bottom { background: var(--paper-2); border-top: 3px dashed var(--line); padding: 14px 18px 18px; display: grid; gap: 8px; justify-items: center; flex: 1; align-content: start; }
+.card-bottom .card-label { color: var(--stop); display: flex; align-items: center; gap: 6px; }
+.danger { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; width: 100%; }
+.danger li { font-weight: 900; font-size: clamp(20px, 6vw, 26px); text-align: center; color: var(--ink); padding: 4px 8px; border-radius: 10px; background: var(--paper); border: 2px solid var(--line); }
+.card.mini { transform: rotate(3deg); max-width: 260px; margin: 0 auto; width: 100%; }
+.card.mini .target { font-size: 34px; }
+.card.mini .card-top { padding: 12px 14px 10px; }
+.card.mini .card-bottom { padding: 10px 14px 14px; }
+.card.mini .danger li { font-size: 18px; padding: 2px 8px; }
+.no-sign { width: 16px; height: 16px; flex: none; }
+
+/* Home */
+#home .hero { display: grid; gap: 22px; padding-top: 6px; align-content: start; }
+#home .tag { text-align: center; font-weight: 800; font-size: 18px; color: var(--on-bg-soft); max-width: 30ch; margin: 0 auto; }
+#home .actions { display: grid; gap: 14px; }
+
+/* Setup */
+.panel { background: var(--paper); color: var(--ink); border-radius: var(--r); padding: 16px; display: grid; gap: 14px; box-shadow: 0 6px 0 rgba(0,0,0,.15); }
+.panel > * { min-width: 0; }
+.panel h3 { font-size: 22px; color: var(--ink); }
+.panel .hint { font-size: 14px; color: var(--muted); font-weight: 700; }
+.topbar { display: flex; align-items: center; gap: 10px; }
+.topbar h2 { font-size: 30px; flex: 1; }
+.icon-btn { width: 46px; height: 46px; border-radius: 14px; border: 0; background: var(--glass); color: #fff; display: grid; place-items: center; flex: none; }
+.icon-btn svg { width: 24px; height: 24px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); background: var(--paper-2); border-radius: 14px; padding: 4px; gap: 4px; }
+.seg button { min-width: 0; border: 0; background: transparent; border-radius: 11px; padding: 10px 6px; font-weight: 900; font-size: 15px; color: var(--muted); min-height: 44px; line-height: 1.1; }
+.seg button[aria-pressed="true"] { background: var(--bg); color: #fff; box-shadow: 0 3px 0 var(--bg-deep); }
+.seg button small { display: block; font-weight: 700; font-size: 12px; opacity: .8; }
+.opt { display: grid; gap: 8px; }
+.opt-label { font-weight: 900; font-size: 15px; }
+.names { display: grid; gap: 8px; }
+.name-row { display: flex; gap: 8px; align-items: center; }
+.name-row .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--c); flex: none; }
+.name-row input, .team-name {
+  flex: 1; min-width: 0; font: inherit; font-weight: 800; font-size: 18px; color: var(--ink);
+  border: 2px solid var(--line); background: var(--paper-2); border-radius: 12px; padding: 10px 12px;
+}
+.name-row input::placeholder, .team-name::placeholder { color: #9AA0C4; }
+.x { width: 44px; height: 44px; border-radius: 12px; border: 0; background: var(--paper-2); color: var(--muted); font-size: 24px; font-weight: 900; flex: none; }
+.x:disabled { opacity: .35; }
+.add { border: 2px dashed var(--line); background: transparent; border-radius: 12px; padding: 10px; font-weight: 900; color: var(--bg); }
+.team-block { display: grid; gap: 8px; padding: 12px; border-radius: 16px; border: 3px solid var(--tc); }
+.team-head { display: flex; gap: 8px; align-items: center; }
+.team-block > *, .names > *, #who > * { min-width: 0; }
+.name-row input, .team-name { width: 100%; }
+.team-badge { font-family: var(--display); color: #fff; background: var(--tc); border-radius: 10px; padding: 4px 10px; font-size: 16px; flex: none; }
+.toggle-row { display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+.toggle-row span { font-weight: 800; font-size: 15px; }
+.switch { width: 58px; height: 34px; border-radius: 99px; border: 0; background: #C9CEE6; position: relative; flex: none; transition: background .15s; }
+.switch::after { content: ""; position: absolute; top: 4px; left: 4px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 2px 3px rgba(0,0,0,.2); }
+.switch[aria-checked="true"] { background: var(--go); }
+.switch[aria-checked="true"]::after { transform: translateX(24px); }
+.stepper { display: flex; align-items: center; gap: 14px; }
+.stepper button { width: 46px; height: 46px; border-radius: 12px; border: 0; background: var(--bg); color: #fff; font-size: 26px; font-weight: 900; }
+.stepper button:disabled { opacity: .35; }
+.stepper output { font-family: var(--display); font-size: 30px; min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; }
+.stepper .unit { font-weight: 800; color: var(--muted); font-size: 14px; }
+.error { background: #FFE4E5; color: var(--stop-deep); font-weight: 800; border-radius: 12px; padding: 10px 12px; font-size: 15px; }
+.sticky-start { position: sticky; bottom: 0; padding-top: 10px; padding-bottom: env(safe-area-inset-bottom, 0px); background: linear-gradient(transparent, var(--bg) 30%); }
+
+/* Pass the phone */
+#pass { text-align: center; }
+#pass .who { font-size: clamp(56px, 18vw, 92px); line-height: .95; color: var(--sun); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; text-shadow: 0 6px 0 var(--ink); overflow-wrap: anywhere; }
+#pass .pass-to { font-family: var(--display); font-size: 26px; }
+.team-pill { display: inline-block; font-family: var(--display); font-size: 20px; padding: 4px 16px 6px; border-radius: 99px; background: var(--tc); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.2); }
+.hint-box { background: var(--glass); border-radius: 18px; padding: 14px 16px; font-weight: 700; font-size: 16px; text-align: left; display: grid; gap: 8px; }
+.hint-box b { color: var(--sun); }
+.board { display: grid; gap: 8px; }
+.board-row { display: flex; align-items: center; gap: 10px; background: var(--glass); border-radius: 14px; padding: 8px 12px; font-weight: 900; }
+.board-row .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--c); flex: none; }
+.board-row .nm { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-row .pts { font-family: var(--display); font-size: 24px; font-variant-numeric: tabular-nums; }
+.board-row.up-now { outline: 3px solid var(--sun); }
+.board.teams { grid-template-columns: 1fr 1fr; }
+.board.teams .board-row { flex-direction: column; gap: 2px; padding: 10px; background: var(--c); }
+.board.teams .nm { text-align: center; width: 100%; }
+.board.teams .pts { font-size: 40px; line-height: 1; }
+
+/* Play */
+#play { gap: 14px; padding-block: 12px 16px; min-height: 100%; height: 100%; }
+.hud { display: flex; align-items: center; gap: 12px; }
+.timer { position: relative; flex: 1; height: 44px; border-radius: 14px; background: var(--bg-deep); overflow: hidden; }
+.timer .fill { position: absolute; inset: 0; transform-origin: left; background: var(--sun); transition: transform .2s linear, background .3s; }
+.timer .num { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 26px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.timer.hurry .fill { background: var(--stop); }
+.timer.hurry .num { color: #fff; animation: pulse .5s infinite alternate; }
+@keyframes pulse { to { transform: scale(1.12); } }
+.turn-score { font-family: var(--display); font-size: 26px; min-width: 56px; height: 44px; border-radius: 14px; background: var(--go); display: grid; place-items: center; padding: 0 10px; font-variant-numeric: tabular-nums; }
+#play .card { flex: 1; min-height: 0; }
+#play .card-top { padding-block: 22px 18px; }
+.card.enter { animation: cardIn .22s ease-out; }
+@keyframes cardIn { from { transform: translateY(18px) scale(.96); opacity: .3; } to { transform: none; opacity: 1; } }
+.flash { position: fixed; inset: 0; pointer-events: none; opacity: 0; z-index: 30; }
+.flash.show { animation: flash .35s ease-out; }
+@keyframes flash { 0% { opacity: .55; } 100% { opacity: 0; } }
+.controls { display: grid; gap: 12px; }
+.controls .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.controls .row .btn { font-size: 19px; padding-inline: 10px; }
+.guessers { display: grid; gap: 10px; grid-template-columns: 1fr; }
+.guessers.two { grid-template-columns: 1fr 1fr; }
+.guessers .btn { min-height: 64px; font-size: 20px; padding-inline: 8px; overflow-wrap: anywhere; line-height: 1.05; }
+.guessers.one .btn { min-height: 76px; font-size: 28px; }
+.who-label { text-align: center; font-weight: 900; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--on-bg-soft); }
+
+/* Overlays */
+.overlay { position: fixed; inset: 0; z-index: 40; background: rgba(15, 24, 70, .92); display: grid; place-items: center; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+.overlay .box { width: 100%; max-width: 420px; display: grid; gap: 14px; text-align: center; }
+.overlay h2 { font-size: 40px; }
+.overlay p { color: var(--on-bg-soft); font-weight: 700; }
+.count { font-family: var(--display); font-size: 160px; color: var(--sun); -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 0 10px 0 var(--ink); animation: pop .6s ease-out; line-height: 1; }
+@keyframes pop { from { transform: scale(1.8); opacity: 0; } 40% { opacity: 1; } to { transform: scale(1); } }
+
+/* Summary */
+.result-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.result-list button { width: 100%; display: flex; align-items: center; gap: 10px; border: 0; background: var(--paper-2); border-radius: 14px; padding: 10px 12px; text-align: left; min-height: 52px; }
+.result-list .w { flex: 1; min-width: 0; font-weight: 900; font-size: 18px; color: var(--ink); }
+.chip { font-weight: 900; font-size: 13px; border-radius: 99px; padding: 5px 10px; color: #fff; white-space: nowrap; }
+.chip.correct { background: var(--go); }
+.chip.skip { background: var(--skip); }
+.chip.buzz { background: var(--stop); }
+.chip.late { background: #9AA0C4; }
+.deltas { display: flex; flex-wrap: wrap; gap: 8px; }
+.delta { font-weight: 900; border-radius: 12px; padding: 6px 12px; background: var(--paper-2); color: var(--ink); }
+.delta b { font-family: var(--display); font-weight: 400; font-size: 20px; }
+.delta .neg { color: var(--stop); }
+.delta .pos { color: var(--go-deep); }
+.big-title { font-size: clamp(44px, 13vw, 64px); text-align: center; color: var(--sun); -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill; text-shadow: 0 5px 0 var(--ink); }
+.center-sub { text-align: center; font-weight: 800; color: var(--on-bg-soft); }
+
+/* Final */
+#final { text-align: center; }
+.trophy { width: 120px; height: 120px; margin: 4px auto 0; animation: bob 1.6s ease-in-out infinite alternate; }
+@keyframes bob { to { transform: translateY(-8px) rotate(3deg); } }
+.place { font-family: var(--display); width: 34px; text-align: center; font-size: 20px; flex: none; }
+.stat-line { font-weight: 700; color: var(--on-bg-soft); font-size: 15px; }
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 20; width: 100%; height: 100%; }
+
+/* Rules */
+.rules { display: grid; gap: 12px; text-align: left; }
+.rules li { font-weight: 700; }
+.rules ol { margin: 0; padding-left: 22px; display: grid; gap: 10px; }
+.rules .tip { font-size: 15px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
+}
+@media (max-height: 640px) {
+  #play .card-top { padding-block: 12px 10px; }
+  .danger { gap: 4px; }
+  .danger li { font-size: 19px; padding: 2px 8px; }
+  .guessers .btn { min-height: 54px; }
+  .guessers.one .btn { min-height: 62px; }
+  .controls .row .btn { min-height: 50px; }
+}
+</style>
+
+<!-- HOME -->
+<section id="home" class="screen">
+  <div class="grow hero">
+    <h1 class="logo" aria-label="Don't Say It!"><span class="l1">Don't</span><span class="l2">Say It!</span></h1>
+    <p class="tag">Get your family to guess the word, without saying any of the danger words.</p>
+    <div class="card mini" aria-hidden="true">
+      <div class="card-top"><span class="card-label">Get them to say</span><span class="target" style="font-family:var(--display)">Penguin</span></div>
+      <div class="card-bottom"><span class="card-label">Don't say</span>
+        <ul class="danger"><li>bird</li><li>ice</li><li>waddle</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn go" id="resume-btn" data-action="resume" hidden>Keep playing <span class="sub" id="resume-sub"></span></button>
+    <button class="btn" data-action="to-setup">New game</button>
+    <button class="btn ghost small" data-action="rules">How to play</button>
+  </div>
+</section>
+
+<!-- SETUP -->
+<section id="setup" class="screen" hidden>
+  <div class="topbar">
+    <button class="icon-btn" data-action="home" aria-label="Back to home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <h2>Who's playing?</h2>
+  </div>
+
+  <div class="panel">
+    <div class="seg" role="group" aria-label="Game type">
+      <button data-opt="mode" data-val="solo">Every player<small>for themselves</small></button>
+      <button data-opt="mode" data-val="teams">Two teams<small>4 or more players</small></button>
+    </div>
+    <p class="hint" id="mode-hint"></p>
+    <div id="who"></div>
+  </div>
+
+  <div class="panel">
+    <h3>Game settings</h3>
+    <div class="opt">
+      <span class="opt-label">Time per turn</span>
+      <div class="seg" role="group" aria-label="Time per turn">
+        <button data-opt="time" data-val="30">30s</button>
+        <button data-opt="time" data-val="45">45s</button>
+        <button data-opt="time" data-val="60">60s</button>
+        <button data-opt="time" data-val="90">90s</button>
+      </div>
+    </div>
+    <div class="opt">
+      <span class="opt-label">Rounds</span>
+      <div class="stepper">
+        <button data-action="rounds-dn" aria-label="Fewer rounds">−</button>
+        <output id="rounds-out">3</output>
+        <button data-action="rounds-up" aria-label="More rounds">+</button>
+        <span class="unit" id="rounds-unit"></span>
+      </div>
+    </div>
+    <div class="opt">
+      <span class="opt-label">Danger words on each card</span>
+      <div class="seg" role="group" aria-label="Danger words">
+        <button data-opt="words" data-val="3">3<small>easier</small></button>
+        <button data-opt="words" data-val="5">5<small>harder</small></button>
+      </div>
+    </div>
+    <div class="opt">
+      <span class="opt-label">Skips per turn</span>
+      <div class="seg" role="group" aria-label="Skips per turn">
+        <button data-opt="skips" data-val="-1">As many as you like</button>
+        <button data-opt="skips" data-val="3">3</button>
+        <button data-opt="skips" data-val="0">None</button>
+      </div>
+    </div>
+    <div class="toggle-row">
+      <span>Lose 1 point for saying a danger word</span>
+      <button class="switch" role="switch" data-toggle="penalty" aria-label="Lose a point for saying a danger word"></button>
+    </div>
+    <div class="toggle-row">
+      <span>Sounds and buzzes</span>
+      <button class="switch" role="switch" data-toggle="sound" aria-label="Sounds"></button>
+    </div>
+  </div>
+
+  <div class="sticky-start">
+    <p class="error" id="setup-error" hidden></p>
+    <button class="btn go" data-action="start">Start the game</button>
+  </div>
+</section>
+
+<!-- PASS THE PHONE -->
+<section id="pass" class="screen" hidden>
+  <div class="topbar">
+    <button class="icon-btn" data-action="quit" aria-label="Leave game"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <span class="eyebrow grow" id="pass-round" style="text-align:right"></span>
+  </div>
+  <div class="grow" style="display:grid;gap:16px;align-content:center">
+    <p class="pass-to">Pass the phone to</p>
+    <h1 class="who" id="pass-name"></h1>
+    <div id="pass-team"></div>
+    <div class="hint-box" id="pass-hint"></div>
+  </div>
+  <div class="board" id="pass-board"></div>
+  <button class="btn go" data-action="ready">I've got the phone. Go!</button>
+</section>
+
+<!-- PLAY -->
+<section id="play" class="screen" hidden>
+  <div class="hud">
+    <div class="timer" id="timer"><div class="fill" id="timer-fill"></div><div class="num" id="timer-num">60</div></div>
+    <div class="turn-score" id="turn-score" aria-label="Words this turn">0</div>
+    <button class="icon-btn" data-action="pause" aria-label="Pause"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg></button>
+  </div>
+  <div id="card-slot" style="display:flex;flex:1;min-height:0;flex-direction:column"></div>
+  <div class="controls">
+    <div class="row">
+      <button class="btn stop" data-action="buzz">Oops! Said it</button>
+      <button class="btn skip" data-action="skip" id="skip-btn">Skip</button>
+    </div>
+    <p class="who-label" id="who-label" hidden>Who guessed it?</p>
+    <div class="guessers" id="guessers"></div>
+  </div>
+</section>
+
+<!-- SUMMARY -->
+<section id="summary" class="screen" hidden>
+  <h1 class="big-title" id="sum-title">Time's up!</h1>
+  <p class="center-sub" id="sum-sub"></p>
+  <div class="panel">
+    <div class="deltas" id="sum-deltas"></div>
+    <p class="hint">Made a mistake? Tap a word to change it.</p>
+    <ul class="result-list" id="sum-list"></ul>
+  </div>
+  <div class="grow"></div>
+  <button class="btn go" data-action="confirm-turn" id="sum-next">Save scores</button>
+</section>
+
+<!-- FINAL -->
+<section id="final" class="screen" hidden>
+  <svg class="trophy" viewBox="0 0 120 120" aria-hidden="true">
+    <path d="M30 18h60v20c0 22-13 38-30 38S30 60 30 38z" fill="#FFC83D" stroke="#17173A" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M30 26H16c0 16 8 26 18 28M90 26h14c0 16-8 26-18 28" fill="none" stroke="#17173A" stroke-width="5" stroke-linecap="round"/>
+    <path d="M52 76h16v14H52z" fill="#FFC83D" stroke="#17173A" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M38 92h44v12H38z" fill="#E3343A" stroke="#17173A" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M47 30l4 9 9 1-7 6 2 9-8-5-8 5 2-9-7-6 9-1z" fill="#fff" transform="translate(13 0)"/>
+  </svg>
+  <h1 class="big-title" id="final-title"></h1>
+  <div class="board" id="final-board"></div>
+  <div id="final-stats" style="display:grid;gap:4px"></div>
+  <div class="grow"></div>
+  <div style="display:grid;gap:12px">
+    <button class="btn go" data-action="again">Play again</button>
+    <button class="btn ghost small" data-action="to-setup">Change players</button>
+    <button class="link-btn" data-action="home">Home</button>
+  </div>
+</section>
+
+<canvas id="confetti" hidden></canvas>
+<div class="flash" id="flash"></div>
+
+<!-- Overlays -->
+<div class="overlay" id="countdown" hidden><div class="count" id="count-num">3</div></div>
+
+<div class="overlay" id="paused" hidden>
+  <div class="box">
+    <h2>Paused</h2>
+    <p>The card is hidden so nobody can peek.</p>
+    <button class="btn go" data-action="resume-turn">Keep going</button>
+    <button class="btn white small" data-action="toggle-sound" id="pause-sound">Sound: on</button>
+    <button class="btn stop small" data-action="end-turn">End this turn now</button>
+  </div>
+</div>
+
+<div class="overlay" id="confirm" hidden>
+  <div class="box">
+    <h2 id="confirm-title">Leave this game?</h2>
+    <p id="confirm-text">The scores so far will be lost.</p>
+    <button class="btn stop" id="confirm-yes">Yes, leave</button>
+    <button class="btn white small" data-action="confirm-no">No, keep playing</button>
+  </div>
+</div>
+
+<div class="overlay" id="rules" hidden>
+  <div class="box">
+    <div class="panel rules">
+      <h3>How to play</h3>
+      <ol>
+        <li>When it's your turn, hold the phone so only you can see it, then tap <b>Go!</b></li>
+        <li>Describe the big word at the top so the others guess it. You can't say the word itself, part of it, or any <b>danger word</b> in the red list.</li>
+        <li>No pointing, acting, rhyming ("sounds like…") or spelling.</li>
+        <li>Someone guessed it? Tap their name (or <b>Got it!</b> in teams). Stuck? Tap <b>Skip</b>. Said a danger word? Be honest and tap <b>Oops!</b></li>
+        <li>When the timer runs out, check the words, save the scores and pass the phone on.</li>
+      </ol>
+      <p class="tip"><b>Every player for themselves:</b> the describer gets a point for each word guessed, and so does the person who guessed it.<br><b>Teams:</b> your team gets a point for each word. The other team watches over your shoulder and shouts "Buzz!" if you slip up.</p>
+    </div>
+    <button class="btn" data-action="close-rules">Got it</button>
+  </div>
+</div>
+
+<script>
+/*CARDS*/
+</script>
+<script>
+(() => {
+'use strict';
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const PLAYER_COLORS = ['#FFC83D', '#FF5D8F', '#17C3B2', '#B388FF', '#FF8A1F', '#7BE07B', '#5EC8FF', '#FF6B6B', '#E8E8E8', '#C9A27E'];
+const TEAM_COLORS = ['var(--team-a)', 'var(--team-b)'];
+const TEAM_DEFAULTS = ['Pink Team', 'Teal Team'];
+const NO_SIGN = '<svg class="no-sign" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M3.5 12.5l9-9" stroke="currentColor" stroke-width="2.2"/></svg>';
+
+/* ---------- state ---------- */
+const DEFAULT_SETUP = {
+  mode: 'solo',
+  players: ['', '', ''],
+  teams: [{ name: '', players: ['', ''] }, { name: '', players: ['', ''] }],
+  time: 60, rounds: 3, words: 5, skips: -1, penalty: true, sound: true,
+};
+let setup = Object.assign(JSON.parse(JSON.stringify(DEFAULT_SETUP)), store.get('dsi.setup', {}));
+let game = store.get('dsi.game', null);
+const saveSetup = () => store.set('dsi.setup', setup);
+const saveGame = () => game ? store.set('dsi.game', game) : store.del('dsi.game');
+
+/* ---------- sound + haptics ---------- */
+let actx = null;
+function unlockAudio() {
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+  } catch (e) { actx = null; }
+}
+function tone(freq, dur, { type = 'sine', vol = 0.22, at = 0, slide = 0 } = {}) {
+  if (!setup.sound || !actx) return;
+  try {
+    const t = actx.currentTime + at;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(actx.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  } catch (e) {}
+}
+const buzzPhone = p => { if (!setup.sound) return; try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+const sfx = {
+  correct() { tone(660, .12, { type: 'triangle' }); tone(990, .2, { type: 'triangle', at: .1 }); buzzPhone(30); },
+  skip() { tone(440, .12, { type: 'sine', slide: -160, vol: .16 }); buzzPhone(15); },
+  buzz() { tone(140, .45, { type: 'sawtooth', vol: .2 }); tone(147, .45, { type: 'square', vol: .08 }); buzzPhone([80, 40, 80]); },
+  tick(last) { tone(last ? 1200 : 880, .07, { type: 'square', vol: .1 }); },
+  count() { tone(520, .15, { type: 'triangle' }); },
+  go() { tone(780, .3, { type: 'triangle' }); tone(1170, .3, { type: 'triangle', vol: .12 }); },
+  end() { tone(220, .9, { type: 'sawtooth', vol: .22 }); tone(110, .9, { type: 'square', vol: .1 }); buzzPhone([300, 100, 300]); },
+  win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, .25, { type: 'triangle', at: i * .13 })); },
+};
+
+/* ---------- wake lock ---------- */
+let wakeLock = null;
+async function keepAwake() {
+  try { if ('wakeLock' in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); } } catch (e) { wakeLock = null; }
+}
+function letSleep() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+
+/* ---------- screens ---------- */
+const SCREENS = ['home', 'setup', 'pass', 'play', 'summary', 'final'];
+function show(id) {
+  SCREENS.forEach(s => { $('#' + s).hidden = s !== id; });
+  window.scrollTo(0, 0);
+}
+function overlay(id, on) { $('#' + id).hidden = !on; }
+
+/* ---------- deck ---------- */
+function buildDeck() {
+  const seen = new Set(store.get('dsi.seen', []));
+  let fresh = [], old = [];
+  CARDS.forEach((_, i) => (seen.has(i) ? old : fresh).push(i));
+  if (fresh.length < 40) { store.set('dsi.seen', []); fresh = fresh.concat(old); old = []; }
+  return shuffle(fresh).concat(shuffle(old));
+}
+function drawCard() {
+  if (game.deckPos >= game.deck.length) { game.deck = shuffle(CARDS.map((_, i) => i)); game.deckPos = 0; }
+  const idx = game.deck[game.deckPos++];
+  const seen = store.get('dsi.seen', []);
+  seen.push(idx); store.set('dsi.seen', seen.slice(-CARDS.length));
+  return idx;
+}
+
+/* ---------- game model ---------- */
+function turnInfo(t) {
+  if (game.mode === 'solo') {
+    const n = game.players.length;
+    return { describer: t % n, name: game.players[t % n], round: Math.floor(t / n) + 1, team: null };
+  }
+  const team = t % 2, tm = game.teams[team];
+  const p = Math.floor(t / 2) % tm.players.length;
+  return { team, describer: p, name: tm.players[p], round: Math.floor(t / 2) + 1 };
+}
+function guessersFor(info) {
+  if (game.mode !== 'solo') return [];
+  return game.players.map((n, i) => ({ n, i })).filter(x => x.i !== info.describer);
+}
+function turnPoints(results, info) {
+  const d = game.mode === 'solo' ? game.players.map(() => 0) : [0, 0];
+  const who = game.mode === 'solo' ? info.describer : info.team;
+  results.forEach(r => {
+    if (r.r === 'correct') { d[who] += 1; if (game.mode === 'solo' && r.g != null) d[r.g] += 1; }
+    if (r.r === 'buzz' && game.settings.penalty) d[who] -= 1;
+  });
+  return d;
+}
+function newGame() {
+  const s = setup;
+  const g = {
+    mode: s.mode,
+    settings: { time: s.time, words: s.words, skips: s.skips, penalty: s.penalty },
+    rounds: s.rounds, turn: 0, phase: 'pass', log: [], deckPos: 0, deck: buildDeck(), cur: null,
+  };
+  if (s.mode === 'solo') {
+    g.players = s.players.map((p, i) => p.trim() || `Player ${i + 1}`);
+    g.scores = g.players.map(() => 0);
+    g.totalTurns = g.rounds * g.players.length;
+  } else {
+    let k = 0;
+    g.teams = s.teams.map((t, ti) => ({ name: t.name.trim() || TEAM_DEFAULTS[ti], players: t.players.map(p => p.trim() || `Player ${++k}`) }));
+    g.scores = [0, 0];
+    g.totalTurns = g.rounds * 2;
+  }
+  game = g; saveGame();
+}
+
+/* ---------- HOME ---------- */
+function renderHome() {
+  const can = game && game.phase !== 'final';
+  $('#resume-btn').hidden = !can;
+  if (can) {
+    const info = turnInfo(game.turn);
+    $('#resume-sub').textContent = `Round ${info.round}, ${info.name}'s turn`;
+  }
+  show('home');
+}
+
+/* ---------- SETUP ---------- */
+function nameRow(id, value, placeholder, color, rmAction, attrs, canRemove) {
+  return `<div class="name-row">${color ? `<span class="dot" style="--c:${color}"></span>` : ''}
+    <input id="${id}" ${attrs} value="${esc(value)}" placeholder="${esc(placeholder)}" maxlength="14" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done">
+    <button class="x" ${rmAction} aria-label="Remove ${esc(value || placeholder)}" ${canRemove ? '' : 'disabled'}>×</button></div>`;
+}
+function renderSetup() {
+  const solo = setup.mode === 'solo';
+  document.querySelectorAll('#setup [data-opt]').forEach(b => b.setAttribute('aria-pressed', String(setup[b.dataset.opt]) === b.dataset.val));
+  document.querySelectorAll('#setup [data-toggle]').forEach(b => b.setAttribute('aria-checked', String(!!setup[b.dataset.toggle])));
+  $('#mode-hint').textContent = solo
+    ? 'Everyone takes turns describing. You score when your word is guessed, and when you guess first.'
+    : 'Teams take turns. One player describes, their teammates guess.';
+  let html = '';
+  if (solo) {
+    html = '<div class="names">' + setup.players.map((p, i) =>
+      nameRow(`p${i}`, p, `Player ${i + 1}`, PLAYER_COLORS[i % PLAYER_COLORS.length], `data-action="rm-player" data-i="${i}"`, `data-p="${i}"`, setup.players.length > 2)
+    ).join('') + '</div>';
+    if (setup.players.length < 10) html += '<button class="add" data-action="add-player" style="margin-top:8px;width:100%">+ Add a player</button>';
+  } else {
+    let k = 0;
+    html = setup.teams.map((t, ti) => `<div class="team-block" style="--tc:${TEAM_COLORS[ti]};margin-top:${ti ? 12 : 0}px">
+      <div class="team-head"><span class="team-badge">Team ${ti + 1}</span><input class="team-name" id="t${ti}" data-t="${ti}" value="${esc(t.name)}" placeholder="${TEAM_DEFAULTS[ti]}" maxlength="16" autocomplete="off" spellcheck="false" aria-label="Team ${ti + 1} name"></div>
+      <div class="names">${t.players.map((p, i) => nameRow(`t${ti}p${i}`, p, `Player ${++k}`, null, `data-action="rm-tplayer" data-t="${ti}" data-i="${i}"`, `data-tp="${ti}:${i}"`, t.players.length > 2)).join('')}</div>
+      ${t.players.length < 6 ? `<button class="add" data-action="add-tplayer" data-t="${ti}">+ Add to ${esc(t.name.trim() || TEAM_DEFAULTS[ti])}</button>` : ''}
+    </div>`).join('');
+  }
+  $('#who').innerHTML = html;
+  $('#rounds-out').textContent = setup.rounds;
+  $('[data-action="rounds-dn"]').disabled = setup.rounds <= 1;
+  $('[data-action="rounds-up"]').disabled = setup.rounds >= 8;
+  const turns = solo ? setup.rounds * setup.players.length : setup.rounds * 2;
+  $('#rounds-unit').textContent = solo ? `everyone goes ${setup.rounds}× (${turns} turns)` : `each team goes ${setup.rounds}×`;
+  $('#setup-error').hidden = true;
+}
+function onSetupInput(e) {
+  const el = e.target;
+  if (el.dataset.p != null) setup.players[+el.dataset.p] = el.value;
+  else if (el.dataset.t != null) setup.teams[+el.dataset.t].name = el.value;
+  else if (el.dataset.tp != null) { const [t, i] = el.dataset.tp.split(':').map(Number); setup.teams[t].players[i] = el.value; }
+  saveSetup();
+}
+
+/* ---------- PASS ---------- */
+function boardHtml(highlight) {
+  if (game.mode === 'solo') {
+    const order = game.players.map((n, i) => ({ n, i, s: game.scores[i] }));
+    return order.map(p => `<div class="board-row ${p.i === highlight ? 'up-now' : ''}"><span class="dot" style="--c:${PLAYER_COLORS[p.i % PLAYER_COLORS.length]}"></span><span class="nm">${esc(p.n)}</span><span class="pts">${p.s}</span></div>`).join('');
+  }
+  return game.teams.map((t, i) => `<div class="board-row ${i === highlight ? 'up-now' : ''}" style="--c:${TEAM_COLORS[i]}"><span class="nm">${esc(t.name)}</span><span class="pts">${game.scores[i]}</span></div>`).join('');
+}
+function renderPass() {
+  game.phase = 'pass'; saveGame();
+  const info = turnInfo(game.turn);
+  const lastRound = info.round === game.rounds;
+  const lastTurn = game.turn === game.totalTurns - 1;
+  $('#pass-round').textContent = lastTurn ? 'Last turn!' : `Round ${info.round} of ${game.rounds}${lastRound ? ' (last round)' : ''}`;
+  $('#pass-name').textContent = info.name;
+  const skipTxt = game.settings.skips < 0 ? '' : game.settings.skips === 0 ? ' No skips this game!' : ` You get ${game.settings.skips} skips.`;
+  if (game.mode === 'solo') {
+    $('#pass-team').innerHTML = '';
+    $('#pass-hint').innerHTML = `<span><b>${esc(info.name)}:</b> you're describing for ${game.settings.time} seconds.${skipTxt}</span><span><b>Everyone else:</b> no peeking! Shout out your guesses. Guess first and you score a point too.</span>`;
+  } else {
+    const tm = game.teams[info.team], other = game.teams[1 - info.team];
+    $('#pass-team').innerHTML = `<span class="team-pill" style="--tc:${TEAM_COLORS[info.team]}">${esc(tm.name)}</span>`;
+    $('#pass-hint').innerHTML = `<span><b>${esc(tm.name)}:</b> you're guessing! ${esc(info.name)} has ${game.settings.time} seconds.${skipTxt}</span><span><b>${esc(other.name)}:</b> watch the screen over ${esc(info.name)}'s shoulder and shout "Buzz!" if a danger word slips out.</span>`;
+  }
+  const b = $('#pass-board');
+  b.className = 'board' + (game.mode === 'solo' ? '' : ' teams');
+  b.innerHTML = boardHtml(game.mode === 'solo' ? info.describer : info.team);
+  show('pass');
+}
+
+/* ---------- PLAY ---------- */
+let tick = null, endAt = 0, lastSec = null, running = false;
+
+function startTurn() {
+  const info = turnInfo(game.turn);
+  game.cur = { results: [], card: drawCard(), remaining: game.settings.time * 1000, skipsUsed: 0, ended: false };
+  game.phase = 'play'; saveGame();
+  renderPlay(info, true);
+  show('play');
+  countdown(() => runTimer());
+}
+function countdown(done) {
+  overlay('countdown', true);
+  const el = $('#count-num');
+  let n = 3;
+  const step = () => {
+    if (n === 0) {
+      el.textContent = 'Go!'; sfx.go();
+      el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+      setTimeout(() => { overlay('countdown', false); done(); }, 450);
+      return;
+    }
+    el.textContent = n; sfx.count();
+    el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    n--; setTimeout(step, 750);
+  };
+  step();
+}
+function cardHtml(idx) {
+  const c = CARDS[idx];
+  const words = c.f.slice(0, game.settings.words);
+  return `<div class="card enter"><div class="card-top"><span class="card-label">Get them to say</span><h2 class="target">${esc(c.w)}</h2></div>
+    <div class="card-bottom"><span class="card-label">${NO_SIGN} Don't say</span><ul class="danger">${words.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div></div>`;
+}
+function renderPlay(info, fresh) {
+  info = info || turnInfo(game.turn);
+  $('#card-slot').innerHTML = cardHtml(game.cur.card);
+  const gs = guessersFor(info);
+  const g = $('#guessers');
+  if (gs.length >= 2) {
+    $('#who-label').hidden = false;
+    g.className = 'guessers two';
+    g.innerHTML = gs.map(x => `<button class="btn go" data-action="correct" data-g="${x.i}">✓ ${esc(x.n)}</button>`).join('');
+    if (gs.length % 2 === 1 && gs.length > 1) g.lastElementChild.style.gridColumn = '1 / -1';
+  } else {
+    $('#who-label').hidden = true;
+    g.className = 'guessers one';
+    g.innerHTML = `<button class="btn go" data-action="correct" ${gs.length === 1 ? `data-g="${gs[0].i}"` : ''}>✓ Got it!</button>`;
+  }
+  updateHud();
+  if (fresh) updateTimerUi(game.cur.remaining);
+}
+function updateHud() {
+  const correct = game.cur.results.filter(r => r.r === 'correct').length;
+  $('#turn-score').textContent = correct;
+  const sb = $('#skip-btn');
+  const lim = game.settings.skips;
+  if (lim < 0) { sb.textContent = 'Skip'; sb.disabled = false; }
+  else { const left = lim - game.cur.skipsUsed; sb.textContent = left > 0 ? `Skip (${left})` : 'No skips'; sb.disabled = left <= 0; }
+}
+function updateTimerUi(ms) {
+  const total = game.settings.time * 1000;
+  const sec = Math.max(0, Math.ceil(ms / 1000));
+  $('#timer-num').textContent = sec;
+  $('#timer-fill').style.transform = `scaleX(${Math.max(0, ms / total)})`;
+  $('#timer').classList.toggle('hurry', sec <= 10);
+}
+function runTimer() {
+  endAt = Date.now() + game.cur.remaining;
+  running = true; lastSec = null;
+  keepAwake();
+  clearInterval(tick);
+  tick = setInterval(onTick, 100);
+  onTick();
+}
+function onTick() {
+  const ms = endAt - Date.now();
+  game.cur.remaining = Math.max(0, ms);
+  updateTimerUi(ms);
+  const sec = Math.ceil(ms / 1000);
+  if (sec !== lastSec) {
+    if (sec <= 5 && sec > 0 && lastSec !== null) sfx.tick(sec === 1);
+    lastSec = sec;
+    saveGame();
+  }
+  if (ms <= 0) endTurn(true);
+}
+function stopTimer() {
+  if (running) game.cur.remaining = Math.max(0, endAt - Date.now());
+  running = false; clearInterval(tick); tick = null;
+}
+function pauseTurn() {
+  if (!running) return;
+  stopTimer(); saveGame();
+  $('#pause-sound').textContent = `Sound: ${setup.sound ? 'on' : 'off'}`;
+  overlay('paused', true);
+}
+function resumeTurn() {
+  overlay('paused', false);
+  unlockAudio();
+  runTimer();
+}
+function flash(color) {
+  const f = $('#flash');
+  f.style.background = color;
+  f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
+}
+function record(r, g) {
+  if (!running) return;
+  const entry = { c: game.cur.card, r };
+  if (g != null) entry.g = g;
+  game.cur.results.push(entry);
+  if (r === 'skip') game.cur.skipsUsed++;
+  game.cur.card = drawCard();
+  saveGame();
+  $('#card-slot').innerHTML = cardHtml(game.cur.card);
+  updateHud();
+}
+function endTurn(timeUp) {
+  stopTimer();
+  overlay('paused', false);
+  if (game.cur.ended) return;
+  game.cur.ended = true;
+  game.cur.results.push({ c: game.cur.card, r: 'late' });
+  game.cur.timeUp = !!timeUp;
+  game.phase = 'summary'; saveGame();
+  letSleep();
+  if (timeUp) { sfx.end(); flash('var(--stop)'); }
+  renderSummary();
+}
+
+/* ---------- SUMMARY ---------- */
+function resultOptions(info) {
+  const opts = [];
+  const gs = guessersFor(info);
+  if (gs.length >= 1) gs.forEach(x => opts.push({ r: 'correct', g: x.i }));
+  else opts.push({ r: 'correct' });
+  opts.push({ r: 'skip' }, { r: 'buzz' }, { r: 'late' });
+  return opts;
+}
+function chipFor(r) {
+  if (r.r === 'correct') return `<span class="chip correct">✓ ${r.g != null ? esc(game.players[r.g]) : 'Got it'}</span>`;
+  if (r.r === 'skip') return '<span class="chip skip">Skipped</span>';
+  if (r.r === 'buzz') return '<span class="chip buzz">Said a danger word</span>';
+  return '<span class="chip late">Out of time</span>';
+}
+function renderSummary() {
+  const info = turnInfo(game.turn);
+  const res = game.cur.results;
+  const correct = res.filter(r => r.r === 'correct').length;
+  $('#sum-title').textContent = game.cur.timeUp ? "Time's up!" : 'Turn over';
+  $('#sum-sub').textContent = correct === 0 ? `No words this time, ${info.name}. Next time!`
+    : `${info.name} got ${correct} word${correct === 1 ? '' : 's'} guessed${correct >= 6 ? '. Amazing!' : correct >= 3 ? '. Nice!' : '.'}`;
+  $('#sum-list').innerHTML = res.map((r, i) => `<li><button data-action="cycle" data-i="${i}"><span class="w">${esc(CARDS[r.c].w)}</span>${chipFor(r)}</button></li>`).join('');
+  const d = turnPoints(res, info);
+  const names = game.mode === 'solo' ? game.players : game.teams.map(t => t.name);
+  const deltas = names.map((n, i) => ({ n, v: d[i] })).filter(x => x.v !== 0);
+  $('#sum-deltas').innerHTML = deltas.length
+    ? deltas.map(x => `<span class="delta">${esc(x.n)} <b class="${x.v < 0 ? 'neg' : 'pos'}">${x.v > 0 ? '+' : ''}${x.v}</b></span>`).join('')
+    : '<span class="delta">No points this turn</span>';
+  $('#sum-next').textContent = game.turn + 1 >= game.totalTurns ? 'Save scores and see who won' : 'Save scores';
+  show('summary');
+}
+function cycleResult(i) {
+  const info = turnInfo(game.turn);
+  const opts = resultOptions(info);
+  const r = game.cur.results[i];
+  const k = opts.findIndex(o => o.r === r.r && (o.g ?? null) === (r.g ?? null));
+  const next = opts[(k + 1) % opts.length];
+  game.cur.results[i] = Object.assign({ c: r.c }, next);
+  saveGame();
+  renderSummary();
+}
+function confirmTurn() {
+  const info = turnInfo(game.turn);
+  const d = turnPoints(game.cur.results, info);
+  d.forEach((v, i) => { game.scores[i] += v; });
+  game.log.push({ turn: game.turn, describer: info.name, team: info.team, words: game.cur.results.filter(r => r.r === 'correct').length, results: game.cur.results });
+  game.cur = null;
+  game.turn++;
+  if (game.turn >= game.totalTurns) { game.phase = 'final'; saveGame(); renderFinal(); }
+  else { saveGame(); renderPass(); }
+}
+
+/* ---------- FINAL ---------- */
+function renderFinal() {
+  const names = game.mode === 'solo' ? game.players : game.teams.map(t => t.name);
+  const rows = names.map((n, i) => ({ n, i, s: game.scores[i] })).sort((a, b) => b.s - a.s);
+  const top = rows[0].s;
+  const winners = rows.filter(r => r.s === top);
+  $('#final-title').textContent = winners.length > 1 ? "It's a tie!" : `${winners[0].n} win${game.mode === 'solo' ? 's' : ''}!`;
+  let place = 0, prev = null;
+  const b = $('#final-board');
+  b.className = 'board';
+  b.innerHTML = rows.map((r, k) => {
+    if (r.s !== prev) { place = k + 1; prev = r.s; }
+    const c = game.mode === 'solo' ? PLAYER_COLORS[r.i % PLAYER_COLORS.length] : TEAM_COLORS[r.i];
+    return `<div class="board-row ${r.s === top ? 'up-now' : ''}"><span class="place">${place}</span><span class="dot" style="--c:${c}"></span><span class="nm">${esc(r.n)}</span><span class="pts">${r.s}</span></div>`;
+  }).join('');
+  const best = game.log.slice().sort((a, b) => b.words - a.words)[0];
+  const totalWords = game.log.reduce((s, l) => s + l.words, 0);
+  const stats = [];
+  if (best && best.words > 0) stats.push(`Best turn: ${esc(best.describer)} with ${best.words} word${best.words === 1 ? '' : 's'}`);
+  stats.push(`${totalWords} word${totalWords === 1 ? '' : 's'} guessed in ${game.log.length} turns`);
+  $('#final-stats').innerHTML = stats.map(s => `<p class="stat-line">${s}</p>`).join('');
+  show('final');
+  sfx.win();
+  confetti();
+}
+function confetti() {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cv = $('#confetti'); cv.hidden = false;
+  const ctx = cv.getContext('2d');
+  const W = cv.width = innerWidth * devicePixelRatio, H = cv.height = innerHeight * devicePixelRatio;
+  const cols = ['#FFC83D', '#FF5D8F', '#17C3B2', '#FFFFFF', '#E3343A', '#7BE07B'];
+  const ps = Array.from({ length: 140 }, () => ({ x: Math.random() * W, y: -Math.random() * H * .6, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 4, s: (6 + Math.random() * 8) * devicePixelRatio, r: Math.random() * 6, vr: (Math.random() - .5) * .3, c: cols[Math.floor(Math.random() * cols.length)] }));
+  const start = performance.now();
+  (function frame(now) {
+    ctx.clearRect(0, 0, W, H);
+    ps.forEach(p => { p.x += p.vx; p.y += p.vy * devicePixelRatio; p.r += p.vr; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore(); });
+    if (now - start < 4500 && !$('#final').hidden) requestAnimationFrame(frame); else { ctx.clearRect(0, 0, W, H); cv.hidden = true; }
+  })(start);
+}
+
+/* ---------- confirm dialog ---------- */
+let confirmCb = null;
+function askConfirm(title, text, yes, cb) {
+  $('#confirm-title').textContent = title; $('#confirm-text').textContent = text; $('#confirm-yes').textContent = yes;
+  confirmCb = cb; overlay('confirm', true);
+}
+$('#confirm-yes').addEventListener('click', () => { overlay('confirm', false); const cb = confirmCb; confirmCb = null; cb && cb(); });
+
+/* ---------- validation ---------- */
+function validateSetup() {
+  if (setup.mode === 'solo') {
+    if (setup.players.length < 2) return 'You need at least 2 players.';
+    const n = setup.players.map((p, i) => (p.trim() || `Player ${i + 1}`).toLowerCase());
+    if (new Set(n).size !== n.length) return 'Two players have the same name. Give everyone a different name so scores don\'t get mixed up.';
+  } else {
+    if (setup.teams.some(t => t.players.length < 2)) return 'Each team needs at least 2 players: one to describe and one to guess.';
+  }
+  return null;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  unlockAudio();
+  const a = b.dataset.action;
+  if (b.dataset.opt) {
+    const k = b.dataset.opt, v = b.dataset.val;
+    setup[k] = k === 'mode' ? v : Number(v);
+    saveSetup(); renderSetup(); return;
+  }
+  if (b.dataset.toggle) { setup[b.dataset.toggle] = !setup[b.dataset.toggle]; saveSetup(); renderSetup(); return; }
+  switch (a) {
+    case 'to-setup': renderSetup(); show('setup'); break;
+    case 'home': renderHome(); break;
+    case 'rules': overlay('rules', true); break;
+    case 'close-rules': overlay('rules', false); break;
+    case 'resume': resumeGame(); break;
+    case 'add-player': setup.players.push(''); saveSetup(); renderSetup(); { const el = $(`#p${setup.players.length - 1}`); el && el.focus(); } break;
+    case 'rm-player': setup.players.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
+    case 'add-tplayer': { const t = +b.dataset.t; setup.teams[t].players.push(''); saveSetup(); renderSetup(); const el = $(`#t${t}p${setup.teams[t].players.length - 1}`); el && el.focus(); break; }
+    case 'rm-tplayer': setup.teams[+b.dataset.t].players.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
+    case 'rounds-dn': setup.rounds = Math.max(1, setup.rounds - 1); saveSetup(); renderSetup(); break;
+    case 'rounds-up': setup.rounds = Math.min(8, setup.rounds + 1); saveSetup(); renderSetup(); break;
+    case 'start': {
+      const err = validateSetup();
+      if (err) { const el = $('#setup-error'); el.textContent = err; el.hidden = false; return; }
+      const go = () => { newGame(); renderPass(); };
+      if (game && game.phase !== 'final' && game.turn > 0) askConfirm('Start a new game?', 'The game you were playing will be lost.', 'Yes, start fresh', go);
+      else go();
+      break;
+    }
+    case 'quit': askConfirm('Leave this game?', 'You can pick it up again from the home screen.', 'Yes, leave', () => { renderHome(); }); break;
+    case 'ready': startTurn(); break;
+    case 'pause': pauseTurn(); break;
+    case 'resume-turn': resumeTurn(); break;
+    case 'end-turn': endTurn(false); break;
+    case 'toggle-sound': setup.sound = !setup.sound; saveSetup(); b.textContent = `Sound: ${setup.sound ? 'on' : 'off'}`; break;
+    case 'correct': if (running) { sfx.correct(); flash('var(--go)'); record('correct', b.dataset.g != null ? +b.dataset.g : null); } break;
+    case 'skip': if (running) { sfx.skip(); record('skip'); } break;
+    case 'buzz': if (running) { sfx.buzz(); flash('var(--stop)'); record('buzz'); } break;
+    case 'cycle': cycleResult(+b.dataset.i); break;
+    case 'confirm-turn': confirmTurn(); break;
+    case 'confirm-no': overlay('confirm', false); confirmCb = null; break;
+    case 'again': newGame(); renderPass(); break;
+  }
+});
+$('#setup').addEventListener('input', onSetupInput);
+$('#setup').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.target.blur(); });
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) pauseTurn();
+  else if (running) keepAwake();
+});
+
+function resumeGame() {
+  if (!game) return renderHome();
+  if (game.phase === 'play' && game.cur && !game.cur.ended) {
+    renderPlay(null, true);
+    show('play');
+    $('#pause-sound').textContent = `Sound: ${setup.sound ? 'on' : 'off'}`;
+    overlay('paused', true);
+  } else if (game.phase === 'summary' && game.cur) renderSummary();
+  else if (game.phase === 'final') renderFinal();
+  else renderPass();
+}
+
+/* ---------- boot ---------- */
+if (!Array.isArray(setup.players) || setup.players.length < 2) setup.players = DEFAULT_SETUP.players.slice();
+if (!Array.isArray(setup.teams) || setup.teams.length !== 2) setup.teams = JSON.parse(JSON.stringify(DEFAULT_SETUP.teams));
+renderHome();
+})();
+</script>
