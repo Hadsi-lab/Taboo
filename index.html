@@ -163,6 +163,13 @@ p { margin: 0; }
 .x:disabled { opacity: .35; }
 .player-item { display: grid; gap: 6px; }
 .player-item + .player-item { padding-top: 4px; }
+.stepper .time-out { min-width: 5.2ch; font-size: 26px; }
+.mini-step { display: flex; align-items: center; gap: 8px; margin-left: 22px; margin-right: 52px; background: var(--paper-2); border-radius: 12px; padding: 3px 3px 3px 12px; }
+.team-block .mini-step { margin-left: 0; }
+.mini-step .ms-label { font-weight: 900; font-size: 13px; color: var(--muted); flex: 1; }
+.mini-step button { width: 36px; height: 34px; border-radius: 9px; border: 0; background: var(--bg); color: #fff; font-size: 20px; font-weight: 900; line-height: 1; }
+.mini-step button:disabled { opacity: .35; }
+.mini-step output { font-weight: 900; font-size: 15px; color: var(--ink); min-width: 6.5ch; text-align: center; font-variant-numeric: tabular-nums; }
 .seg.lvl { padding: 3px; border-radius: 12px; margin-left: 22px; margin-right: 52px; }
 .seg.lvl button { min-height: 34px; padding: 6px 4px; font-size: 13px; border-radius: 9px; }
 .team-block .seg.lvl { margin-left: 0; }
@@ -324,13 +331,17 @@ p { margin: 0; }
     <h3>Game settings</h3>
     <div class="opt">
       <span class="opt-label">Time per turn</span>
-      <div class="seg" role="group" aria-label="Time per turn">
-        <button data-opt="time" data-val="30">30s</button>
-        <button data-opt="time" data-val="45">45s</button>
-        <button data-opt="time" data-val="60">60s</button>
-        <button data-opt="time" data-val="90">90s</button>
-        <button data-opt="time" data-val="120">120s</button>
+      <div class="seg" role="group" aria-label="Time per turn: same for everyone or per player">
+        <button data-opt="timeEach" data-val="false">Same for everyone</button>
+        <button data-opt="timeEach" data-val="true">Set for each player</button>
       </div>
+      <div class="stepper" id="time-all">
+        <button data-time="all" data-d="-15" aria-label="Less time">−</button>
+        <output id="time-out" class="time-out">1 min</output>
+        <button data-time="all" data-d="15" aria-label="More time">+</button>
+        <span class="unit">15 sec steps, up to 5 min</span>
+      </div>
+      <p class="hint" id="time-each-hint" hidden>Set the time under each player's name above. Give younger players longer if they need it.</p>
     </div>
     <div class="opt">
       <span class="opt-label">Rounds</span>
@@ -884,8 +895,8 @@ const NO_SIGN = '<svg class="no-sign" viewBox="0 0 16 16" aria-hidden="true"><ci
 const DEFAULT_SETUP = {
   mode: 'solo',
   players: ['', '', ''],
-  teams: [{ name: '', players: ['', ''], levels: [5, 5] }, { name: '', players: ['', ''], levels: [5, 5] }],
-  time: 60, rounds: 3, words: 5, diffEach: false, levels: [5, 5, 5], skips: -1, penalty: true, sound: true,
+  teams: [{ name: '', players: ['', ''], levels: [5, 5], times: [60, 60] }, { name: '', players: ['', ''], levels: [5, 5], times: [60, 60] }],
+  time: 60, timeEach: false, times: [60, 60, 60], rounds: 3, words: 5, diffEach: false, levels: [5, 5, 5], skips: -1, penalty: true, sound: true,
 };
 let setup = Object.assign(JSON.parse(JSON.stringify(DEFAULT_SETUP)), store.get('dsi.setup', {}));
 let game = store.get('dsi.game', null);
@@ -972,6 +983,11 @@ function wordsFor(info) {
   const lv = game.mode === 'solo' ? (game.levels || [])[info.describer] : (game.teams[info.team].levels || [])[info.describer];
   return lv || game.settings.words;
 }
+function timeFor(info) {
+  if (!game.settings.timeEach) return game.settings.time;
+  const tv = game.mode === 'solo' ? (game.times || [])[info.describer] : (game.teams[info.team].times || [])[info.describer];
+  return tv || game.settings.time;
+}
 function guessersFor(info) {
   if (game.mode !== 'solo') return [];
   return game.players.map((n, i) => ({ n, i })).filter(x => x.i !== info.describer);
@@ -989,17 +1005,18 @@ function newGame() {
   const s = setup;
   const g = {
     mode: s.mode,
-    settings: { time: s.time, words: s.words, each: !!s.diffEach, skips: s.skips, penalty: s.penalty },
+    settings: { time: s.time, timeEach: !!s.timeEach, words: s.words, each: !!s.diffEach, skips: s.skips, penalty: s.penalty },
     rounds: s.rounds, turn: 0, phase: 'pass', log: [], deckPos: 0, deck: buildDeck(), cur: null,
   };
   if (s.mode === 'solo') {
     g.players = s.players.map((p, i) => p.trim() || `Player ${i + 1}`);
     g.levels = s.levels.slice();
+    g.times = s.times.slice();
     g.scores = g.players.map(() => 0);
     g.totalTurns = g.rounds * g.players.length;
   } else {
     let k = 0;
-    g.teams = s.teams.map((t, ti) => ({ name: t.name.trim() || TEAM_DEFAULTS[ti], players: t.players.map(p => p.trim() || `Player ${++k}`), levels: t.levels.slice() }));
+    g.teams = s.teams.map((t, ti) => ({ name: t.name.trim() || TEAM_DEFAULTS[ti], players: t.players.map(p => p.trim() || `Player ${++k}`), levels: t.levels.slice(), times: t.times.slice() }));
     g.scores = [0, 0];
     g.totalTurns = g.rounds * 2;
   }
@@ -1025,10 +1042,23 @@ function levelPicker(key, cur, who) {
   return `<div class="seg lvl" role="group" aria-label="Danger words for ${esc(who)}">${LEVELS.map(l =>
     `<button data-lvl="${key}" data-val="${l.v}" aria-pressed="${cur === l.v}">${l.n}</button>`).join('')}</div>`;
 }
-function nameRow(id, value, placeholder, color, rmAction, attrs, canRemove, lvlKey, lvl) {
+const TMIN = 15, TMAX = 300;
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60), r = sec % 60;
+  if (!m) return `${r} sec`;
+  return r ? `${m} min ${r}` : `${m} min`;
+}
+function timePicker(key, cur, who) {
+  if (!setup.timeEach) return '';
+  return `<div class="mini-step" role="group" aria-label="Time for ${esc(who)}"><span class="ms-label">Time</span>
+    <button data-time="${key}" data-d="-15" aria-label="Less time for ${esc(who)}" ${cur <= TMIN ? 'disabled' : ''}>−</button>
+    <output>${fmtTime(cur)}</output>
+    <button data-time="${key}" data-d="15" aria-label="More time for ${esc(who)}" ${cur >= TMAX ? 'disabled' : ''}>+</button></div>`;
+}
+function nameRow(id, value, placeholder, color, rmAction, attrs, canRemove, lvlKey, lvl, tm) {
   return `<div class="player-item"><div class="name-row">${color ? `<span class="dot" style="--c:${color}"></span>` : ''}
     <input id="${id}" ${attrs} value="${esc(value)}" placeholder="${esc(placeholder)}" maxlength="14" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done">
-    <button class="x" ${rmAction} aria-label="Remove ${esc(value || placeholder)}" ${canRemove ? '' : 'disabled'}>×</button></div>${levelPicker(lvlKey, lvl, value || placeholder)}</div>`;
+    <button class="x" ${rmAction} aria-label="Remove ${esc(value || placeholder)}" ${canRemove ? '' : 'disabled'}>×</button></div>${timePicker(lvlKey, tm, value || placeholder)}${levelPicker(lvlKey, lvl, value || placeholder)}</div>`;
 }
 function renderSetup() {
   const solo = setup.mode === 'solo';
@@ -1040,18 +1070,23 @@ function renderSetup() {
   let html = '';
   if (solo) {
     html = '<div class="names">' + setup.players.map((p, i) =>
-      nameRow(`p${i}`, p, `Player ${i + 1}`, PLAYER_COLORS[i % PLAYER_COLORS.length], `data-action="rm-player" data-i="${i}"`, `data-p="${i}"`, setup.players.length > 2, `p:${i}`, setup.levels[i])
+      nameRow(`p${i}`, p, `Player ${i + 1}`, PLAYER_COLORS[i % PLAYER_COLORS.length], `data-action="rm-player" data-i="${i}"`, `data-p="${i}"`, setup.players.length > 2, `p:${i}`, setup.levels[i], setup.times[i])
     ).join('') + '</div>';
     if (setup.players.length < 10) html += '<button class="add" data-action="add-player" style="margin-top:8px;width:100%">+ Add a player</button>';
   } else {
     let k = 0;
     html = setup.teams.map((t, ti) => `<div class="team-block" style="--tc:${TEAM_COLORS[ti]};margin-top:${ti ? 12 : 0}px">
       <div class="team-head"><span class="team-badge">Team ${ti + 1}</span><input class="team-name" id="t${ti}" data-t="${ti}" value="${esc(t.name)}" placeholder="${TEAM_DEFAULTS[ti]}" maxlength="16" autocomplete="off" spellcheck="false" aria-label="Team ${ti + 1} name"></div>
-      <div class="names">${t.players.map((p, i) => nameRow(`t${ti}p${i}`, p, `Player ${++k}`, null, `data-action="rm-tplayer" data-t="${ti}" data-i="${i}"`, `data-tp="${ti}:${i}"`, t.players.length > 2, `t:${ti}:${i}`, t.levels[i])).join('')}</div>
+      <div class="names">${t.players.map((p, i) => nameRow(`t${ti}p${i}`, p, `Player ${++k}`, null, `data-action="rm-tplayer" data-t="${ti}" data-i="${i}"`, `data-tp="${ti}:${i}"`, t.players.length > 2, `t:${ti}:${i}`, t.levels[i], t.times[i])).join('')}</div>
       ${t.players.length < 6 ? `<button class="add" data-action="add-tplayer" data-t="${ti}">+ Add to ${esc(t.name.trim() || TEAM_DEFAULTS[ti])}</button>` : ''}
     </div>`).join('');
   }
   $('#who').innerHTML = html;
+  $('#time-all').hidden = !!setup.timeEach;
+  $('#time-each-hint').hidden = !setup.timeEach;
+  $('#time-out').textContent = fmtTime(setup.time);
+  $('[data-time="all"][data-d="-15"]').disabled = setup.time <= TMIN;
+  $('[data-time="all"][data-d="15"]').disabled = setup.time >= TMAX;
   $('#words-all').hidden = !!setup.diffEach;
   $('#words-each-hint').hidden = !setup.diffEach;
   $('#rounds-out').textContent = setup.rounds;
@@ -1085,15 +1120,15 @@ function renderPass() {
   $('#pass-round').textContent = lastTurn ? 'Last turn!' : `Round ${info.round} of ${game.rounds}${lastRound ? ' (last round)' : ''}`;
   $('#pass-name').textContent = info.name;
   const wc = wordsFor(info);
-  $('#pass-level').textContent = `${levelName(wc)}: ${wc} danger words`;
+  $('#pass-level').textContent = `${fmtTime(timeFor(info))} · ${levelName(wc)}: ${wc} danger words`;
   const skipTxt = game.settings.skips < 0 ? '' : game.settings.skips === 0 ? ' No skips this game!' : ` You get ${game.settings.skips} skips.`;
   if (game.mode === 'solo') {
     $('#pass-team').innerHTML = '';
-    $('#pass-hint').innerHTML = `<span><b>${esc(info.name)}:</b> you're describing for ${game.settings.time} seconds.${skipTxt}</span><span><b>Everyone else:</b> no peeking! Shout out your guesses. Guess first and you score a point too.</span>`;
+    $('#pass-hint').innerHTML = `<span><b>${esc(info.name)}:</b> you have ${fmtTime(timeFor(info))} to describe.${skipTxt}</span><span><b>Everyone else:</b> no peeking! Shout out your guesses. Guess first and you score a point too.</span>`;
   } else {
     const tm = game.teams[info.team], other = game.teams[1 - info.team];
     $('#pass-team').innerHTML = `<span class="team-pill" style="--tc:${TEAM_COLORS[info.team]}">${esc(tm.name)}</span>`;
-    $('#pass-hint').innerHTML = `<span><b>${esc(tm.name)}:</b> you're guessing! ${esc(info.name)} has ${game.settings.time} seconds.${skipTxt}</span><span><b>${esc(other.name)}:</b> watch the screen over ${esc(info.name)}'s shoulder and shout "Buzz!" if a danger word slips out.</span>`;
+    $('#pass-hint').innerHTML = `<span><b>${esc(tm.name)}:</b> you're guessing! ${esc(info.name)} has ${fmtTime(timeFor(info))}.${skipTxt}</span><span><b>${esc(other.name)}:</b> watch the screen over ${esc(info.name)}'s shoulder and shout "Buzz!" if a danger word slips out.</span>`;
   }
   const b = $('#pass-board');
   b.className = 'board' + (game.mode === 'solo' ? '' : ' teams');
@@ -1106,7 +1141,8 @@ let tick = null, endAt = 0, lastSec = null, running = false;
 
 function startTurn() {
   const info = turnInfo(game.turn);
-  game.cur = { results: [], card: drawCard(), remaining: game.settings.time * 1000, skipsUsed: 0, ended: false };
+  const total = timeFor(info) * 1000;
+  game.cur = { results: [], card: drawCard(), total, remaining: total, skipsUsed: 0, ended: false };
   game.phase = 'play'; saveGame();
   renderPlay(info, true);
   show('play');
@@ -1162,9 +1198,9 @@ function updateHud() {
   else { const left = lim - game.cur.skipsUsed; sb.textContent = left > 0 ? `Skip (${left})` : 'No skips'; sb.disabled = left <= 0; }
 }
 function updateTimerUi(ms) {
-  const total = game.settings.time * 1000;
+  const total = (game.cur && game.cur.total) || game.settings.time * 1000;
   const sec = Math.max(0, Math.ceil(ms / 1000));
-  $('#timer-num').textContent = sec;
+  $('#timer-num').textContent = sec >= 60 ? `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}` : sec;
   $('#timer-fill').style.transform = `scaleX(${Math.max(0, ms / total)})`;
   $('#timer').classList.toggle('hurry', sec <= 10);
 }
@@ -1353,7 +1389,15 @@ document.addEventListener('click', e => {
   const a = b.dataset.action;
   if (b.dataset.opt) {
     const k = b.dataset.opt, v = b.dataset.val;
-    setup[k] = k === 'mode' ? v : k === 'diffEach' ? v === 'true' : Number(v);
+    setup[k] = k === 'mode' ? v : (k === 'diffEach' || k === 'timeEach') ? v === 'true' : Number(v);
+    saveSetup(); renderSetup(); return;
+  }
+  if (b.dataset.time) {
+    const parts = b.dataset.time.split(':'), d = Number(b.dataset.d);
+    const clamp = v => Math.max(TMIN, Math.min(TMAX, v + d));
+    if (parts[0] === 'all') setup.time = clamp(setup.time);
+    else if (parts[0] === 'p') setup.times[+parts[1]] = clamp(setup.times[+parts[1]]);
+    else setup.teams[+parts[1]].times[+parts[2]] = clamp(setup.teams[+parts[1]].times[+parts[2]]);
     saveSetup(); renderSetup(); return;
   }
   if (b.dataset.lvl) {
@@ -1368,10 +1412,10 @@ document.addEventListener('click', e => {
     case 'rules': overlay('rules', true); break;
     case 'close-rules': overlay('rules', false); break;
     case 'resume': resumeGame(); break;
-    case 'add-player': setup.players.push(''); setup.levels.push(setup.words); saveSetup(); renderSetup(); { const el = $(`#p${setup.players.length - 1}`); el && el.focus(); } break;
-    case 'rm-player': setup.players.splice(+b.dataset.i, 1); setup.levels.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
-    case 'add-tplayer': { const t = +b.dataset.t; setup.teams[t].players.push(''); setup.teams[t].levels.push(setup.words); saveSetup(); renderSetup(); const el = $(`#t${t}p${setup.teams[t].players.length - 1}`); el && el.focus(); break; }
-    case 'rm-tplayer': setup.teams[+b.dataset.t].players.splice(+b.dataset.i, 1); setup.teams[+b.dataset.t].levels.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
+    case 'add-player': setup.players.push(''); setup.levels.push(setup.words); setup.times.push(setup.time); saveSetup(); renderSetup(); { const el = $(`#p${setup.players.length - 1}`); el && el.focus(); } break;
+    case 'rm-player': setup.players.splice(+b.dataset.i, 1); setup.levels.splice(+b.dataset.i, 1); setup.times.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
+    case 'add-tplayer': { const t = +b.dataset.t; setup.teams[t].players.push(''); setup.teams[t].levels.push(setup.words); setup.teams[t].times.push(setup.time); saveSetup(); renderSetup(); const el = $(`#t${t}p${setup.teams[t].players.length - 1}`); el && el.focus(); break; }
+    case 'rm-tplayer': setup.teams[+b.dataset.t].players.splice(+b.dataset.i, 1); setup.teams[+b.dataset.t].levels.splice(+b.dataset.i, 1); setup.teams[+b.dataset.t].times.splice(+b.dataset.i, 1); saveSetup(); renderSetup(); break;
     case 'rounds-dn': setup.rounds = Math.max(1, setup.rounds - 1); saveSetup(); renderSetup(); break;
     case 'rounds-up': setup.rounds = Math.min(8, setup.rounds + 1); saveSetup(); renderSetup(); break;
     case 'start': {
@@ -1422,7 +1466,10 @@ if (!Array.isArray(setup.players) || setup.players.length < 2) setup.players = D
 if (!Array.isArray(setup.teams) || setup.teams.length !== 2) setup.teams = JSON.parse(JSON.stringify(DEFAULT_SETUP.teams));
 const fixLevels = (lv, n) => Array.from({ length: n }, (_, i) => [3, 4, 5].includes(lv && lv[i]) ? lv[i] : setup.words);
 setup.levels = fixLevels(setup.levels, setup.players.length);
-setup.teams.forEach(t => { t.levels = fixLevels(t.levels, t.players.length); });
+if (!(setup.time >= TMIN && setup.time <= TMAX)) setup.time = 60;
+const fixTimes = (tv, n) => Array.from({ length: n }, (_, i) => (tv && tv[i] >= TMIN && tv[i] <= TMAX) ? tv[i] : setup.time);
+setup.teams.forEach(t => { t.levels = fixLevels(t.levels, t.players.length); t.times = fixTimes(t.times, t.players.length); });
+setup.times = fixTimes(setup.times, setup.players.length);
 renderHome();
 })();
 </script>
