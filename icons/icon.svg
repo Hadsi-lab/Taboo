@@ -1,0 +1,15 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#FFC83D"/>
+  <circle cx="256" cy="256" r="236" fill="#FFD35F"/>
+  <g transform="translate(0 16)" fill="#17173A">
+    <rect x="92" y="118" width="328" height="232" rx="80"/><path d="M156 320 L130 418 L254 342 Z"/>
+  </g>
+  <g fill="#17173A" stroke="#17173A" stroke-width="28" stroke-linejoin="round">
+    <rect x="92" y="118" width="328" height="232" rx="80"/><path d="M156 320 L130 418 L254 342 Z"/>
+  </g>
+  <g fill="#E3343A">
+    <rect x="92" y="118" width="328" height="232" rx="80"/><path d="M156 320 L130 418 L254 342 Z"/>
+  </g>
+  <text x="256" y="300" text-anchor="middle" font-family="'Lilita One', sans-serif" font-size="210" fill="#FFFFFF" stroke="#17173A" stroke-width="10" paint-order="stroke fill">!</text>
+  <g stroke="#17173A" stroke-width="12" stroke-linecap="round"><path d="M74 96 L104 126"/><path d="M60 156 L98 164"/><path d="M438 96 L408 126"/><path d="M452 156 L414 164"/></g>
+</svg>

@@ -22,3 +22,4 @@ A pass-the-phone word guessing game for the family. One player describes the wor
 - Words live in `src/cards.js` (one card per line: `Word|danger1,danger2,danger3,danger4,danger5`).
 - The page lives in `src/game.html`.
 - After changing either one, run `node tools/build.js` to regenerate `index.html`, then `node tools/check-cards.js src/cards.js` to check the deck for duplicates and danger words that overlap the target word.
+- The app icon is drawn in `icons/icon.svg`. After changing it, run `node tools/render-icons.js` to regenerate the PNG icons (needs Playwright).
